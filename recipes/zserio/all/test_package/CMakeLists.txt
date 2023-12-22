@@ -4,14 +4,19 @@ project(test_package LANGUAGES CXX)
 
 find_package(zserio REQUIRED CONFIG)
 
-add_executable(${PROJECT_NAME} test_package.cpp)
-target_link_libraries(${PROJECT_NAME} PRIVATE zserio::ZserioCppRuntime)
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_11)
+add_library(simple_zs simple.zs)
+zserio_generate_cpp(
+    TARGET simple_zs
+    GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/cpp
+    EXTRA_ARGS
+        -setTopLevelPackage top.level
+        -withTypeInfoCode
+        -withReflectionCode
+        -setCppAllocator polymorphic
+        -withoutSourcesAmalgamation
+)
+target_link_libraries(simple_zs PUBLIC zserio::ZserioCppRuntime)
+target_include_directories(simple_zs PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/cpp)
 
-# check that ZSERIO_JAR_FILE exists
-if (NOT DEFINED ENV{ZSERIO_JAR_FILE})
-    message(FATAL_ERROR "ZSERIO_JAR_FILE in not defined!")
-endif ()
-if (NOT EXISTS $ENV{ZSERIO_JAR_FILE})
-    message(FATAL_ERROR "ZSERIO_JAR_FILE '$ENV{ZSERIO_JAR_FILE}' does not exist!")
-endif ()
+add_executable(${PROJECT_NAME} test_package.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE simple_zs)

@@ -1,15 +1,13 @@
-#include <zserio/BitStreamWriter.h>
-#include <zserio/BitStreamReader.h>
+#include <zserio/SerializeUtil.h>
+#include "top/level/simple/Simple.h"
 
 int main(int argc, char* argv[])
 {
-    zserio::BitBuffer bitBuffer(64);
-    zserio::BitStreamWriter writer(bitBuffer);
-    const uint64_t value = UINT64_MAX;
-    writer.writeBits64(value, 64);
+    top::level::simple::Simple simple;
+    simple.setValue64(UINT64_MAX);
 
-    zserio::BitStreamReader reader(writer.getWriteBuffer(), writer.getBitPosition(), zserio::BitsTag());
-    const uint64_t readValue = reader.readBits64(64);
+    auto bitBuffer = zserio::serialize(simple);
+    auto readSimple = zserio::deserialize<top::level::simple::Simple>(bitBuffer);
 
-    return value == readValue ? 0 : 1;
+    return simple == readSimple ? 0 : 1;
 }
